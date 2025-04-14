@@ -21,6 +21,10 @@ Data is sourced from [Harvard Dataverse](https://dataverse.harvard.edu/dataset.x
    - Supports XLSX, CSV formats
    - Minimum required data columns: longitude [Long.] and latitude [Lat.]
 
+## Online Usage
+
+https://kyanzhu.github.io/Ancient-Sample-Visualizer/
+
 ## Acknowledgments
 
 Thanks to Harvard Dataverse for providing the data support.
