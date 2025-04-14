@@ -1,6 +1,6 @@
 # Ancient Sample Visualization Tool
 
-This project is a web-based visualization tool designed to display sample information organized by Harvard Dataverse.
+This project is a OpenStreetMap based visualization tool designed to display sample information organized by Harvard Dataverse.
 
 ## Data Source
 
