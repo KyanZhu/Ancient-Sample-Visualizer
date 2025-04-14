@@ -1,4 +1,4 @@
-# Genome Data Visualization Tool
+# Ancient Sample Visualization Tool
 
 This project is a web-based visualization tool designed to display sample information organized by Harvard Dataverse.
 
