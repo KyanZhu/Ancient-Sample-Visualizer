@@ -23,7 +23,7 @@ Data is sourced from [Harvard Dataverse](https://dataverse.harvard.edu/dataset.x
 
 ## Online Usage
 
-https://kyanzhu.github.io/Ancient-Sample-Visualizer/
+[Ancient-Sample-Visualizer](https://kyanzhu.github.io/Ancient-Sample-Visualizer/)
 
 ## Acknowledgments
 
