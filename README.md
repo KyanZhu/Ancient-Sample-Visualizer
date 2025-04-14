@@ -24,3 +24,6 @@ Data is sourced from [Harvard Dataverse](https://dataverse.harvard.edu/dataset.x
 ## Acknowledgments
 
 Thanks to Harvard Dataverse for providing the data support.
+
+ ![](https://github.com/KyanZhu/Ancient-Sample-Visualizer/blob/main/open.png?raw=true)
+ ![](https://github.com/KyanZhu/Ancient-Sample-Visualizer/blob/main/options.png?raw=true)
