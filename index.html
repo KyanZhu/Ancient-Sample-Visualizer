@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古代样本可视化工具</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- XLSX 库，用于解析Excel文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- PapaParse 库，用于解析CSV文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1>古代样本可视化工具</h1>
+                <div class="controls">
+                    <button id="theme-toggle" class="theme-toggle">🌙</button>
+                    <button id="lang-toggle" class="lang-toggle">EN</button>
+                </div>
+            </div>
+            
+            <!-- 文件上传部分 -->
+            <div class="upload-section">
+                <h2 id="upload-title">上传数据文件</h2>
+                <div class="file-upload">
+                    <label for="file-input" id="file-label">选择 Excel 或 CSV 文件</label>
+                    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" />
+                </div>
+                <p class="file-info" id="file-format-info">支持的文件格式: .xlsx, .xls, .csv</p>
+                <p class="file-info" id="file-requirement-info">文件必须包含 Lat. 和 Long. 列以显示地理位置</p>
+            </div>
+            
+            <!-- 已加载文件列表 -->
+            <div id="loaded-files" class="loaded-files">
+                <!-- 文件列表将在这里动态生成 -->
+            </div>
+            
+            <!-- 搜索和过滤部分 -->
+            <div id="search-filter" class="search-filter" style="display: none;">
+                <h2 id="search-title">搜索和过滤</h2>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="搜索..." />
+                </div>
+                
+                <div class="age-filter">
+                    <h3 id="age-filter-title">年代范围 (BP)</h3>
+                    <div class="slider-container">
+                        <input type="range" id="min-age-slider" min="0" max="100000" value="0" />
+                        <input type="range" id="max-age-slider" min="0" max="100000" value="100000" />
+                    </div>
+                    <div class="slider-values">
+                        <span id="min-age-value">0</span> - <span id="max-age-value">100000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 侧边栏切换按钮 -->
+            <button id="sidebar-toggle" class="sidebar-toggle">←</button>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div id="main-content" class="main-content">
+            <!-- 地图容器 -->
+            <div id="map" class="map-container"></div>
+            
+            <!-- 欢迎信息 -->
+            <div id="welcome-message" class="welcome-message">
+                <h2 id="welcome-title">欢迎使用古代样本可视化工具</h2>
+                <p id="welcome-text">请使用左侧面板上传Excel或CSV数据文件以开始可视化。</p>
+                <p id="welcome-format">支持的文件格式: .xlsx, .xls, .csv</p>
+            </div>
+            
+            <!-- 个体信息弹窗 -->
+            <div id="individual-info" class="individual-info" style="display: none;">
+                <div class="info-header">
+                    <h3 id="info-title">个体信息</h3>
+                    <button id="close-info">×</button>
+                </div>
+                <div id="info-content" class="info-content">
+                    <!-- 个体信息将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>
