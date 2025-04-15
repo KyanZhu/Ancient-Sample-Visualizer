@@ -9,6 +9,9 @@ let minAge = 0;
 let maxAge = 100000;
 let isDarkTheme = false;
 let currentLanguage = 'en'; // Default language
+let selectedMarkerInfo = 'none'; // 当前选择的标记信息
+let markerCluster; // 添加 markerCluster 变量
+let useCluster = true; // 是否使用 cluster 功能
 
 // Language pack
 const translations = {
@@ -33,7 +36,9 @@ const translations = {
         locality: '地点',
         age: '年代 (BP)',
         publication: '出版物',
-        loading: '加载中...'
+        loading: '加载中...',
+        markerDisplayInfo: '标记显示信息：',
+        enableMarkerClustering: '启用标记聚合：'
     },
     en: {
         title: 'Ancient Sample Visualizer',
@@ -56,7 +61,9 @@ const translations = {
         locality: 'Locality',
         age: 'Age (BP)',
         publication: 'Publication',
-        loading: 'Loading...'
+        loading: 'Loading...',
+        markerDisplayInfo: 'Marker Display Info:',
+        enableMarkerClustering: 'Enable Marker Clustering:'
     }
 };
 
@@ -75,7 +82,11 @@ function initMap() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     
-    // Hide map and show welcome message
+    // 初始化 markerCluster
+    markerCluster = L.markerClusterGroup();
+    map.addLayer(markerCluster);
+    
+    // 隐藏地图并显示欢迎信息
     document.getElementById('welcome-message').style.display = 'block';
 }
 
@@ -102,6 +113,44 @@ function setupEventListeners() {
     
     // Close individual info
     document.getElementById('close-info').addEventListener('click', closeIndividualInfo);
+    
+    // 添加打印按钮事件监听
+    document.getElementById('print-button').addEventListener('click', showPrintSettings);
+    
+    // 打印设置面板事件监听
+    const printSettings = document.getElementById('print-settings');
+    const printSizeOptions = printSettings.querySelectorAll('.print-size-option');
+    const printCancel = printSettings.querySelector('.print-cancel');
+    const printConfirm = printSettings.querySelector('.print-confirm');
+    
+    printSizeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            printSizeOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+        });
+    });
+    
+    printCancel.addEventListener('click', () => {
+        printSettings.classList.remove('active');
+    });
+    
+    printConfirm.addEventListener('click', () => {
+        const selectedSize = printSettings.querySelector('.print-size-option.active')?.dataset.size || 'a4';
+        handlePrint(selectedSize);
+        printSettings.classList.remove('active');
+    });
+    
+    // 添加标记信息选择事件监听
+    document.getElementById('marker-info-select').addEventListener('change', function(e) {
+        selectedMarkerInfo = e.target.value;
+        updateMarkers();
+    });
+    
+    // 添加 cluster 开关事件监听
+    document.getElementById('cluster-toggle').addEventListener('change', function(e) {
+        useCluster = e.target.checked;
+        updateMarkers();
+    });
 }
 
 // Handle file upload
@@ -200,6 +249,9 @@ function processData(data, fileName) {
     // Hide welcome message and show search filter area
     document.getElementById('welcome-message').style.display = 'none';
     document.getElementById('search-filter').style.display = 'block';
+    
+    // 更新标记显示信息选项
+    updateMarkerInfoOptions(data[0]);
     
     hideLoading();
 }
@@ -326,12 +378,23 @@ function filterData(searchTerm, minAgeValue, maxAgeValue) {
 
 // Display data
 function displayData(data) {
-    // Clear existing markers
+    // 清除现有标记
     clearMarkers();
     
-    // Add new markers
+    // 如果使用 cluster，确保 cluster 图层已添加到地图
+    if (useCluster) {
+        if (!map.hasLayer(markerCluster)) {
+            map.addLayer(markerCluster);
+        }
+    } else {
+        if (map.hasLayer(markerCluster)) {
+            map.removeLayer(markerCluster);
+        }
+    }
+    
+    // 添加新标记
     data.forEach((item, index) => {
-        // Handle different field names
+        // 处理不同的字段名
         const lat = parseFloat(item['Lat.'] || item['Lat'] || 0);
         const lng = parseFloat(item['Long.'] || item['Long'] || 0);
         const ageField = 'Date mean in BP in years before 1950 CE' in item ? 
@@ -343,26 +406,39 @@ function displayData(data) {
         
         const markerColor = getColorByAge(age, minAge, maxAge);
         
-        // Create custom icon
+        // 创建自定义图标，包含点和标签
+        const markerLabelText = getMarkerLabelText(item);
         const customIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div style="background-color: ${markerColor}; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #000;"></div>`,
-            iconSize: [10, 10],
-            iconAnchor: [5, 5]
+            html: `
+                <div style="position: relative; display: inline-block; transform: translate(-50%, -50%);">
+                    <div style="background-color: ${markerColor}; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #000;"></div>
+                    ${markerLabelText !== null ? `
+                        <div class="marker-label" style="position: absolute; left: 15px; top: -5px; background-color: rgba(255, 255, 255, 0.8); padding: 2px 5px; border-radius: 3px; font-size: 12px; white-space: nowrap;">
+                            ${markerLabelText}
+                        </div>
+                    ` : ''}
+                </div>
+            `,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
         });
         
-        // Handle different field names
+        // 处理不同的字段名
         const geneticId = item['Genetic ID (suffixes: ".DG" is a high coverage shotgun genome with diploid genotype calls, ".AG" is shotgun data with each position in the genome represented by a randomly chosen sequence, ".HO" is Affymetrix Human Origins genotype data)'] || 
                          item['Genetic ID'] || 'Unknown';
         const masterId = item['Master ID'] || 'N/A';
         const groupId = item['Group ID'] || 'N/A';
         const locality = item['Locality'] || 'N/A';
         const publication = item['Publication abbreviation'] || 'N/A';
+        const country = item['Country'] || 'N/A';
+        const culture = item['Culture'] || 'N/A';
+        const sex = item['Sex'] || 'N/A';
         
-        // Create marker
-        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+        // 创建标记
+        const marker = L.marker([lat, lng], { icon: customIcon });
         
-        // Add popup info
+        // 添加弹出信息
         marker.bindPopup(`
             <h3>${geneticId}</h3>
             <p><strong>${translations[currentLanguage].masterId}:</strong> ${masterId}</p>
@@ -370,21 +446,70 @@ function displayData(data) {
             <p><strong>${translations[currentLanguage].locality}:</strong> ${locality}</p>
             <p><strong>${translations[currentLanguage].age}:</strong> ${age || 'N/A'}</p>
             <p><strong>${translations[currentLanguage].publication}:</strong> ${publication}</p>
+            <p><strong>国家:</strong> ${country}</p>
+            <p><strong>文化:</strong> ${culture}</p>
+            <p><strong>性别:</strong> ${sex}</p>
         `);
         
-        // Click event
+        // 点击事件
         marker.on('click', function() {
             showIndividualInfo(item);
         });
         
+        // 根据设置决定是否使用 cluster
+        if (useCluster) {
+            markerCluster.addLayer(marker);
+        } else {
+            marker.addTo(map);
+        }
         markers.push(marker);
     });
     
-    // Adjust map view if there are markers
+    // 调整地图视图
     if (markers.length > 0) {
         const group = new L.featureGroup(markers);
         map.fitBounds(group.getBounds());
     }
+}
+
+function getMarkerLabelText(item) {
+    if (selectedMarkerInfo === 'none') return null;
+    if (selectedMarkerInfo === 'latLng') {
+        const lat = parseFloat(item['Lat.'] || item['Lat'] || 0);
+        const lng = parseFloat(item['Long.'] || item['Long'] || 0);
+        const latDir = lat >= 0 ? 'N' : 'S';
+        const lngDir = lng >= 0 ? 'E' : 'W';
+        return `${Math.abs(lat).toFixed(2)}°${latDir}, ${Math.abs(lng).toFixed(2)}°${lngDir}`;
+    }
+    return item[selectedMarkerInfo] || 'N/A';
+}
+
+function updateMarkers() {
+    // 保存当前地图视图
+    const currentCenter = map.getCenter();
+    const currentZoom = map.getZoom();
+    
+    // 清除所有现有标记
+    clearMarkers();
+    
+    // 如果使用 cluster，确保 cluster 图层已添加到地图
+    if (useCluster) {
+        if (!map.hasLayer(markerCluster)) {
+            map.addLayer(markerCluster);
+        }
+    } else {
+        if (map.hasLayer(markerCluster)) {
+            map.removeLayer(markerCluster);
+        }
+    }
+    
+    // 重新显示数据
+    if (currentFileIndex >= 0) {
+        displayData(filteredData);
+    }
+    
+    // 恢复地图视图
+    map.setView(currentCenter, currentZoom);
 }
 
 // Get color by age
@@ -403,8 +528,19 @@ function getColorByAge(age, minAge, maxAge, divisions = 5) {
 
 // Clear markers
 function clearMarkers() {
-    markers.forEach(marker => map.removeLayer(marker));
+    // 清除所有标记
+    markers.forEach(marker => {
+        map.removeLayer(marker);
+        if (markerCluster) {
+            markerCluster.removeLayer(marker);
+        }
+    });
     markers = [];
+    
+    // 确保清除所有图层
+    if (markerCluster) {
+        markerCluster.clearLayers();
+    }
 }
 
 // Show individual info
@@ -426,6 +562,13 @@ function showIndividualInfo(individual) {
     addInfoItem(infoContent, translations[currentLanguage].locality, individual['Locality'] || 'N/A');
     addInfoItem(infoContent, translations[currentLanguage].age, individual[ageField] || 'N/A');
     addInfoItem(infoContent, translations[currentLanguage].publication, individual['Publication abbreviation'] || 'N/A');
+    
+    // Add coordinates
+    const lat = parseFloat(individual['Lat.'] || individual['Lat'] || 0);
+    const lng = parseFloat(individual['Long.'] || individual['Long'] || 0);
+    const latDir = lat >= 0 ? 'N' : 'S';
+    const lngDir = lng >= 0 ? 'E' : 'W';
+    addInfoItem(infoContent, 'Lat, Long', `${Math.abs(lat).toFixed(2)}°${latDir}, ${Math.abs(lng).toFixed(2)}°${lngDir}`);
     
     // Add other possible fields
     for (const key in individual) {
@@ -479,10 +622,19 @@ function toggleTheme() {
 // Toggle language
 function toggleLanguage() {
     currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
-    updateLanguage();
+    document.documentElement.lang = currentLanguage === 'zh' ? 'zh-CN' : 'en';
     
-    const button = document.getElementById('lang-toggle');
-    button.textContent = currentLanguage === 'zh' ? 'EN' : '中';
+    // 更新所有带有 data-lang 属性的元素
+    document.querySelectorAll('[data-lang]').forEach(element => {
+        const lang = element.getAttribute('data-lang');
+        element.style.display = (lang === currentLanguage) ? 'block' : 'none';
+    });
+    
+    // 更新按钮文本
+    document.getElementById('lang-toggle').textContent = currentLanguage === 'zh' ? 'EN' : '中';
+    
+    // Update language
+    updateLanguage();
 }
 
 // Update language
@@ -510,6 +662,18 @@ function updateLanguage() {
     document.getElementById('welcome-text').textContent = translations[currentLanguage].welcomeText;
     document.getElementById('welcome-format').textContent = translations[currentLanguage].welcomeFormat;
     
+    // Update marker display info and clustering labels
+    const markerInfoLabels = document.querySelectorAll('[for="marker-info-select"][data-lang]');
+    const clusterLabels = document.querySelectorAll('[for="cluster-toggle"][data-lang]');
+    
+    markerInfoLabels.forEach(label => {
+        label.style.display = label.getAttribute('data-lang') === currentLanguage ? 'block' : 'none';
+    });
+    
+    clusterLabels.forEach(label => {
+        label.style.display = label.getAttribute('data-lang') === currentLanguage ? 'block' : 'none';
+    });
+    
     // Update loaded files list
     updateLoadedFilesList();
     
@@ -534,4 +698,71 @@ function hideLoading() {
     if (loading) {
         loading.remove();
     }
+}
+
+function handlePrint(size = 'a4') {
+    // 隐藏打印设置面板
+    const printSettings = document.getElementById('print-settings');
+    printSettings.classList.remove('active');
+    
+    // 设置打印样式
+    const style = document.createElement('style');
+    style.textContent = `
+        @page {
+            size: ${size};
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .print-settings {
+            display: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 直接打印，不改变地图视图
+    window.print();
+    
+    // 打印完成后移除样式
+    setTimeout(() => {
+        style.remove();
+    }, 1000);
+}
+
+function showPrintSettings() {
+    const printSettings = document.getElementById('print-settings');
+    const defaultSize = printSettings.querySelector('.print-size-option[data-size="a4"]');
+    printSettings.querySelectorAll('.print-size-option').forEach(opt => opt.classList.remove('active'));
+    defaultSize.classList.add('active');
+    printSettings.classList.add('active');
+}
+
+function updateMarkerInfoOptions(firstRow) {
+    const select = document.getElementById('marker-info-select');
+    // 清空现有选项，保留 "None" 选项
+    select.innerHTML = '<option value="none">None</option>';
+    
+    // 添加经纬度复合选项
+    const latLngOption = document.createElement('option');
+    latLngOption.value = 'latLng';
+    latLngOption.textContent = 'Lat, Long';
+    select.appendChild(latLngOption);
+    
+    // 添加所有可用的列名作为选项
+    Object.keys(firstRow).forEach(key => {
+        // 跳过不需要显示的列
+        if (['Lat.', 'Lat', 'Long.', 'Long'].includes(key)) return;
+        
+        // 创建选项
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key;
+        select.appendChild(option);
+    });
 }

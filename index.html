@@ -8,11 +8,18 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     
+    <!-- MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="style.css">
     
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     
     <!-- XLSX 库，用于解析Excel文件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -29,6 +36,7 @@
                 <div class="controls">
                     <button id="theme-toggle" class="theme-toggle">🌙</button>
                     <button id="lang-toggle" class="lang-toggle">EN</button>
+                    <button id="print-button" class="print-button">🖨️</button>
                 </div>
             </div>
             
@@ -53,6 +61,20 @@
                 <h2 id="search-title">搜索和过滤</h2>
                 <div class="search-box">
                     <input type="text" id="search-input" placeholder="搜索..." />
+                </div>
+                
+                <div class="info-display-options">
+                    <label for="marker-info-select" data-lang="zh">标记显示信息：</label>
+                    <label for="marker-info-select" data-lang="en">Marker Display Info:</label>
+                    <select id="marker-info-select">
+                        <option value="none">None</option>
+                    </select>
+                </div>
+                
+                <div class="cluster-option">
+                    <label for="cluster-toggle" data-lang="zh">启用标记聚合：</label>
+                    <label for="cluster-toggle" data-lang="en">Enable Marker Clustering:</label>
+                    <input type="checkbox" id="cluster-toggle" checked>
                 </div>
                 
                 <div class="age-filter">
@@ -98,5 +120,20 @@
     
     <!-- 自定义脚本 -->
     <script src="script.js"></script>
+
+    <!-- 打印设置面板 -->
+    <div id="print-settings" class="print-settings">
+        <h3>打印设置</h3>
+        <div class="print-size-options">
+            <div class="print-size-option" data-size="a4">A4 (210 × 297 mm)</div>
+            <div class="print-size-option" data-size="a3">A3 (297 × 420 mm)</div>
+            <div class="print-size-option" data-size="a2">A2 (420 × 594 mm)</div>
+            <div class="print-size-option" data-size="a1">A1 (594 × 841 mm)</div>
+        </div>
+        <div class="print-actions">
+            <button class="print-cancel">取消</button>
+            <button class="print-confirm">打印</button>
+        </div>
+    </div>
 </body>
 </html>

@@ -324,6 +324,46 @@ body {
     font-size: 1rem;
 }
 
+.info-display-options {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: var(--card-bg);
+    border-radius: 4px;
+}
+
+.info-display-options label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.info-display-options select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.info-display-options select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.marker-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 2px 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .sidebar {
@@ -368,4 +408,149 @@ body {
     padding: 15px 20px;
     border-radius: 5px;
     font-size: 1rem;
+}
+
+.print-button {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.print-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media print {
+    .sidebar {
+        display: none;
+    }
+    
+    .app-container {
+        width: 100%;
+        margin: 0;
+    }
+    
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
+    
+    .individual-info {
+        position: static;
+        width: 100%;
+        max-width: none;
+        margin: 20px 0;
+    }
+
+    /* 确保地图标记颜色在打印时可见 */
+    .custom-div-icon {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 确保地图标记在打印时可见 */
+    .leaflet-marker-icon {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+/* 打印设置面板样式 */
+.print-settings {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    display: none;
+}
+
+.print-settings.active {
+    display: block;
+}
+
+.print-settings h3 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.print-size-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.print-size-option {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.print-size-option:hover {
+    background-color: var(--hover-color);
+}
+
+.print-size-option.active {
+    border-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.print-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.print-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.print-cancel {
+    background-color: var(--border-color);
+}
+
+.print-confirm {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.print-actions button:hover {
+    opacity: 0.9;
+}
+
+.cluster-option {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: var(--card-bg);
+    border-radius: 4px;
+}
+
+.cluster-option label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.cluster-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
